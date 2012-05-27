@@ -10,7 +10,7 @@ require("naughty")
 require("wicked")
 -- Battery
 require("vicious")
-local vicious = vicious
+--local vicious = vicious
 
 
 
