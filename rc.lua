@@ -87,7 +87,7 @@ layouts =
 tags = {
 	names = { "1-Terminal", "2-Chrome","3-Office","4-Notes","5-Net","6-VirtualBox","7-Media","8-Other"},
 	layout = {  layouts[2] , -- 1-Terminal
-				layouts[12], -- 2-Chrome
+				layouts[1], -- 2-Chrome
 				layouts[10], -- 3-Office
 				layouts[2] , -- 4-Notes
 				layouts[10], -- 5-SNS
@@ -118,6 +118,7 @@ powermenu = {
 }
 myappmenu = {
 	{ "VirtualBox",		"VirtualBox"},
+	{ "KeepassX",		"keepassx"},
 	{ "Chrome",			"google-chrome"},
 	{ "Office",			"libreoffice"},
 	{ "File Manager",		"nautilus"},
@@ -244,7 +245,7 @@ netwidget = widget({
 wicked.register(netwidget, wicked.widgets.net,
     --' <span color="white">NET</span>: ${eth0 down} / ${eth0 up} ',
 --nil, nil, 3)
-    ' <span color="white">[</span>${eth0 down} / ${eth0 up}<span color="white">]</span>',
+    ' <span color="white">[</span>${wlan0 down} / ${wlan0 up}<span color="white">]</span>',
 nil, nil, 3)
 -- }}
 
@@ -364,9 +365,12 @@ globalkeys = awful.util.table.join(
 	-- {{ Move mouse
 	awful.key({ modkey }, "Left",  function () awful.client.moveresize(-20,   0,   0,   0) end),
 	awful.key({ modkey }, "Right", function () awful.client.moveresize( 20,   0,   0,   0) end),
-	awful.key({ modkey }, "Up",  function () awful.client.moveresize(-20,   -20,   0,   0) end),
-	awful.key({ modkey }, "Down", function () awful.client.moveresize( 0,   20,   0,   0) end),
+	awful.key({ modkey }, "Up",    function () awful.client.moveresize( 0,  -20,   0,   0) end),
+	awful.key({ modkey }, "Down",  function () awful.client.moveresize( 0,   20,   0,   0) end),
 	-- }}
+	-- keepassX {{
+	awful.key({ modkey }, "p",   function () awful.util.spawn_with_shell("keepassx") end),
+	--}}
 	-- {{ suspend wicked to save battery
 	awful.key({ modkey }, "F10",   function () awful.util.spawn_with_shell("echo 'wicked.suspend()' | awesome-client") end),
 	-- activate wicked
@@ -586,3 +590,7 @@ if autorun then
         awful.util.spawn_with_shell(autorunApps[app])
     end
 end
+
+awful.util.spawn_with_shell("/usr/lib/policykit-gnome/polkit-gnome-authentication-agent-1")
+awful.util.spawn_with_shell("run_once nm-applet")
+os.execute("sudo nm-applet &")
