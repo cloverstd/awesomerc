@@ -6,14 +6,8 @@ require("awful.rules")
 require("beautiful")
 -- Notification library
 require("naughty")
--- The widget wicked
-require("wicked")
--- Battery
-require("vicious")
---local vicious = vicious
-
-
-
+--require("wicked")
+vicious = require("vicious")
 
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
@@ -41,16 +35,12 @@ end
 -- }}}
 
 -- {{{ Variable definitions
-local home   = os.getenv("XDG_CONFIG_HOME")
---local home   = os.getenv("HOME")
-
+local home = os.getenv("XDG_CONFIG_HOME")
 -- Themes define colours, icons, and wallpapers
-----autiful.init(home .. "/awesome/themes/default/theme.lua")
---beautiful.init("/usr/share/awesome/themes/default/theme.lua")
+-- beautiful.init("/usr/share/awesome/themes/default/theme.lua")
 beautiful.init(home .. "/awesome/themes/zenburn/theme.lua")
 
 -- This is used later as the default terminal and editor to run.
--- terminal = "gnome-terminal"
 terminal = "urxvt"
 editor = os.getenv("EDITOR") or "nano"
 editor_cmd = terminal .. " -e " .. editor
@@ -65,40 +55,37 @@ modkey = "Mod4"
 -- Table of layouts to cover with awful.layout.inc, order matters.
 layouts =
 {
-    awful.layout.suit.floating,				--1
-    awful.layout.suit.tile,					--2
-    awful.layout.suit.tile.left,			--3
-    awful.layout.suit.tile.bottom,			--4
-    awful.layout.suit.tile.top,				--5
-    awful.layout.suit.fair,					--6
-    awful.layout.suit.fair.horizontal,		--7
-    awful.layout.suit.spiral,				--8
-    awful.layout.suit.spiral.dwindle,		--9
-    awful.layout.suit.max,					--10
-    awful.layout.suit.max.fullscreen,		--11
-	awful.layout.suit.magnifier				--12
+    awful.layout.suit.floating,                 -- 1
+    awful.layout.suit.tile,                     -- 2
+    awful.layout.suit.tile.left,                -- 3
+    awful.layout.suit.tile.bottom,              -- 4
+    awful.layout.suit.tile.top,                 -- 5
+    awful.layout.suit.fair,                     -- 6
+    awful.layout.suit.fair.horizontal,          -- 7
+    awful.layout.suit.spiral,                   -- 8
+    awful.layout.suit.spiral.dwindle,           -- 9
+    awful.layout.suit.max,                      -- 10
+    awful.layout.suit.max.fullscreen,           -- 11
+    awful.layout.suit.magnifier                 -- 12
 }
 -- }}}
-
-
 
 -- {{{ Tags
 -- Define a tag table which hold all screen tags.
 tags = {
-	names = { "1-Terminal", "2-Chrome","3-Office","4-Notes","5-Net","6-VirtualBox","7-Media","8-Other"},
-	layout = {  layouts[2] , -- 1-Terminal
-				layouts[1], -- 2-Chrome
-				layouts[10], -- 3-Office
-				layouts[2] , -- 4-Notes
-				layouts[10], -- 5-SNS
-	            layouts[10] , -- 6-VirtualBox
-				layouts[1] , -- 7-Media
-				layouts[6] , -- 8-Other
-			}
-			  }
+        names = { "1-Terminal", "2-Chrome","3-Office","4-Notes","5-Terminal","6-Media","7-Other"},
+        layout = { layouts[2],              -- 1-Terminal
+                    layouts[1],              -- 2-Chrome
+                    layouts[10],             -- 3-Office
+                    layouts[2] ,             -- 4-Notes
+                    layouts[2],              -- 5-Terminal
+                    layouts[1] ,             -- 6-Media
+                    layouts[6] ,             -- 7-Other
+               }
+}
 for s = 1, screen.count() do
     -- Each screen has its own tag table.
-	tags[s] = awful.tag(tags.names, s, tags.layout)
+    tags[s] = awful.tag(tags.names, s, tags.layout)
 end
 -- }}}
 
@@ -111,27 +98,21 @@ myawesomemenu = {
    { "quit", awesome.quit }
 }
 powermenu = {
-	{ "Power Off",		"sudo halt"},
-	{ "Reboot",			"sudo reboot"},
-	{ "Lock",			"xlock -mode blank"},
-	{ "suspend",		"sudo pm-suspend"}
+    { "Power Off",      "sudo poweroff"},
+    { "Reboot",         "sudo reboot"},
+    { "Lock",           "xlock -mode blank"},
+    { "suspend",        "sudo pm-suspend"}
 }
 myappmenu = {
-	{ "VirtualBox",		"VirtualBox"},
-	{ "KeepassX",		"keepassx"},
-	{ "Chrome",			"google-chrome"},
-	{ "Office",			"libreoffice"},
-	{ "File Manager",		"nautilus"},
-	{ "Volume Setting",			"gnome-alsamixer"},
-	{ "Media Player",		"gnome-mplayer"},
-	{ "Gedit",			"gedit"},
-	{ "PDF Viwer",			"xpdf"}
+    { "Chrome",         "google-chrome"},
+    {"wicd-curses",     "urxvt -e wicd-curses"},
+    {"ranger",     "urxvt -e ranger"},
+    {"xfe",     "xfe"},
+    { "Sublime Text",         "sublime_text"}
 }
 
-mymainmenu = awful.menu({ items = { 
-                                    --{ "Terminal", terminal },
-									{ "Appilction", myappmenu, beautiful.awesome_icon },
-									{ "awesome", myawesomemenu, beautiful.awesome_icon },
+mymainmenu = awful.menu({ items = { { "awesome", myawesomemenu, beautiful.awesome_icon },
+                                    { "Appilction", myappmenu, beautiful.awesome_icon },
                                     { "Power", powermenu, beautiful.awesome_icon }
                                   }
                         })
@@ -144,13 +125,12 @@ mylauncher = awful.widget.launcher({ image = image(beautiful.awesome_icon),
 -- Create a textclock widget
 mytextclock = awful.widget.textclock({ align = "right" })
 
-
 -- Create a systray
 mysystray = widget({ type = "systray" })
 
 -- Create a wibox for each screen and add it
-mywiboxtop = {}
-mywiboxbottom = {}
+mywibox = {}
+mybottomwibox = {}        -- Create a bottom statusbar
 mypromptbox = {}
 mylayoutbox = {}
 mytaglist = {}
@@ -194,6 +174,54 @@ mytasklist.buttons = awful.util.table.join(
                                               if client.focus then client.focus:raise() end
                                           end))
 
+
+-- {{{
+-- Vicious
+
+
+-- TIME widget
+-- {{
+-- Initialize widget
+datewidget = widget({ type = "textbox" })
+-- Register widget
+vicious.register(datewidget, vicious.widgets.date, '[DATE: %b %d] [TIME: <span color="yellow">%R</span>]', 60)
+-- }}
+
+-- Memory Widget
+-- {{
+memwidget = widget({ type = "textbox" })
+vicious.register(memwidget, vicious.widgets.mem, '[MEM: <span color="red">$1%</span>]', 13)
+-- }}
+
+-- CPU Widget
+-- {{
+cpuwidget = widget({ type = "textbox" })
+vicious.register(cpuwidget, vicious.widgets.cpu, '[CPU: <span color="red">$1%</span>]')
+-- }}
+
+-- Battery Status
+-- {{
+battext = widget({ type = "textbox", name = "battext" })
+vicious.register(battext, vicious.widgets.bat, '[BAT: <span color="red">$2%</span>$1][LEFTTIME: <span color="red">$3</span>]', 60, "BAT0")
+--}}
+
+-- WiFi widget   --  Link quality
+-- {{
+wifiwidget = widget({ type = "textbox" })
+vicious.register(wifiwidget, vicious.widgets.wifi, '[WIFI:${ssid}-${linp}%]', 60, "wlan0")
+--}}
+
+-- Net Widget 
+-- {{
+netwidget = widget({ type = "textbox" })
+vicious.register(netwidget, vicious.widgets.net, '[${wlan0 down_kb}/${wlan0 up_kb}]', 13)
+-- }}
+
+-- }}}
+
+
+
+
 for s = 1, screen.count() do
     -- Create a promptbox for each screen
     mypromptbox[s] = awful.widget.prompt({ layout = awful.widget.layout.horizontal.leftright })
@@ -213,135 +241,59 @@ for s = 1, screen.count() do
                                               return awful.widget.tasklist.label.currenttags(c, s)
                                           end, mytasklist.buttons)
 
--- widget wicked
---
-cpuwidget = widget({
-	    type = 'textbox',
-		    name = 'cpuwidget'
-		})
-
-		wicked.register(cpuwidget, wicked.widgets.cpu,
-		    --' <span color="white">CPU:</span> $1%')
-		    ' <span color="white">[CPU:</span>$1%<span color="white">]</span>')
---
--- Memery widget
--- {{
- memwidget = widget({
- 	type = 'textbox',
- 	name = 'memwidget'
- })
- wicked.register(memwidget, wicked.widgets.mem,
-	--'<span color="white">Memory :</span> $2Mb/$3Mb <span color="white">||</span>')
-	'<span color="white">[</span>$2Mb/$3Mb<span color="white">]</span>')
---}} 
-
--- Net Widget
--- {{
-netwidget = widget({
-    type = 'textbox',
-    name = 'netwidget'
-})
-
-wicked.register(netwidget, wicked.widgets.net,
-    --' <span color="white">NET</span>: ${eth0 down} / ${eth0 up} ',
---nil, nil, 3)
-    ' <span color="white">[</span>${wlan0 down} / ${wlan0 up}<span color="white">]</span>',
-nil, nil, 3)
--- }}
-
---}}}
-
--- Battery widget
--- {{{
-----------------------------
--- {{ Battery Funciton
-local limits = {{25, 5},
-          {12, 3},
-          { 7, 1},
-            {0}}
-
-function batclosure ()
-    local nextlim = limits[1][1]
-    return function (_, args)
-        local prefix = "⚡"
-        local state, charge = args[1], args[2]
-        if not charge then return end
-        if state == "-" then
-            dirsign = "↓"
-            --prefix = "Bat:"
-            if charge <= nextlim then
-                naughty.notify({title = "⚡ Lystring! ⚡",
-                                text = "Battery Low ( ⚡ "..charge.."%)!",
-                                timeout = 7,
-                                position = "bottom_right",
-                                fg = beautiful.fg_focus,
-                                bg = beautiful.bg_focus
-                               })
-                nextlim = getnextlim(charge)
-            end
-        elseif state == "+" then
-            dirsign = "↑"
-            nextlim = limits[1][1]
-        else
-            dirsign = ""
-        end
-        if dir ~= 0 then charge = charge.."%"  end
-        return " "..prefix.." "..dirsign..charge..dirsign.." "
-    end
-end
-
--- }}
-
---{{ Battery Widget config
-batterywidget = widget({type = "textbox", name = "batterywidget"})
-vicious.register(batterywidget, vicious.widgets.bat, batclosure(),
-                    31, "BAT0")
---}}
------------------------------------------
---}}}
 
 
-    -- Create the wibox 
-	mywiboxtop[s] = awful.wibox({ position = "top",  screen = s }) 
-	mywiboxbottom[s] = awful.wibox({ position = "bottom",  screen = s })
 
+
+    -- Create the wibox
+    mywibox[s] = awful.wibox({ position = "top", screen = s })
+   -- mybottomwibox[s] = awful.wibox({ position = "bottom", screen = s })
     -- Add widgets to the wibox - order matters
-	
-	-- {{ Bottom wibox
-    mywiboxbottom[s].widgets = {
-        {
-            --mylauncher, // menu
-            --mytaglist[s], // tags
-            mypromptbox[s],
-            layout = awful.widget.layout.horizontal.leftright
-        },
-        --mytextclock,
-        s == 1 and mysystray or nil,
-		batterywidget,
-		memwidget,
-		cpuwidget,
-		netwidget,
-        --mytasklist[s],
-        layout = awful.widget.layout.horizontal.rightleft
-    }
-	-- }}
 
-	-- {{ Top wibox
-    mywiboxtop[s].widgets = {
+ --  mybottomwibox[s].widgets = {
+    --   {
+            -- mylauncher,
+            --mypromptbox[s],
+     --      layout = awful.widget.layout.horizontal.leftright
+     --  },
+     --  s == 1 and mysystray or nil,
+         -- mylayoutbox[s],
+    --      memwidget,
+     --     cpuwidget,
+     --     netwidget,
+     --   datewidget,
+     --   battext,
+      --  cpuwidget,
+      --  memwidget,
+      --  netwidget,
+      --  wifiwidget,
+        -- mytextclock,
+        
+       --mytasklist[s],
+  --     layout = awful.widget.layout.horizontal.rightleft
+ --  }
+
+    mywibox[s].widgets = {
         {
             --mylauncher,
             mytaglist[s],
-			mylayoutbox[s],
-            --mypromptbox[s],
+            mypromptbox[s],
             layout = awful.widget.layout.horizontal.leftright
         },
-		--mylayoutbox[s],
-        mytextclock,
-        --s == 1 and mysystray or nil,
+       mylayoutbox[s],
+       
+        --mytextclock,
+        datewidget,
+        battext,
+        cpuwidget,
+        memwidget,
+        netwidget,
+        wifiwidget,
+        s == 1 and mysystray or nil,
         mytasklist[s],
         layout = awful.widget.layout.horizontal.rightleft
     }
-	-- }}
+  
 end
 -- }}}
 
@@ -355,32 +307,30 @@ root.buttons(awful.util.table.join(
 
 -- {{{ Key bindings
 globalkeys = awful.util.table.join(
-------------------------- Is My key
-	awful.key({ modkey }, "F1",   function () awful.util.spawn_with_shell("urxvt -e ssh -qTfnN -D 7070 -p 7775 hui.lu -v") end),
-	awful.key({ modkey }, "F2",   function () awful.util.spawn_with_shell("synclient touchpadoff=1") end),
-	awful.key({ modkey }, "F3",   function () awful.util.spawn_with_shell("synclient touchpadoff=0") end),
-	-- awful.key({ modkey }, "F11",   function () awful.util.spawn("sudo pm-suspend") end),
-	-- xlock
-	awful.key({ modkey }, "F12",   function () awful.util.spawn_with_shell("xlock -mode blank") end),
-	-- {{ Move mouse
-	awful.key({ modkey }, "Left",  function () awful.client.moveresize(-20,   0,   0,   0) end),
-	awful.key({ modkey }, "Right", function () awful.client.moveresize( 20,   0,   0,   0) end),
-	awful.key({ modkey }, "Up",    function () awful.client.moveresize( 0,  -20,   0,   0) end),
-	awful.key({ modkey }, "Down",  function () awful.client.moveresize( 0,   20,   0,   0) end),
-	-- }}
-	-- keepassX {{
-	awful.key({ modkey }, "p",   function () awful.util.spawn_with_shell("keepassx") end),
-	--}}
-	-- {{ suspend wicked to save battery
-	awful.key({ modkey }, "F10",   function () awful.util.spawn_with_shell("echo 'wicked.suspend()' | awesome-client") end),
-	-- activate wicked
-	awful.key({ modkey }, "F9",   function () awful.util.spawn_with_shell("echo 'wicked.activate()' | awesome-client") end),
-	-- }}
-	
-------------------------- My key
-    --awful.key({ modkey,           }, "Left",   awful.tag.viewprev       ),
-    --awful.key({ modkey,           }, "Right",  awful.tag.viewnext       ),
 
+  ------------------------- Is My key
+  --awful.key({ modkey }, "F1",   function () awful.util.spawn_with_shell("urxvt -e ssh -qTfnN -D 7070 -p 7775 hui.lu -v") end),
+  awful.key({ modkey }, "F2",   function () awful.util.spawn_with_shell("synclient touchpadoff=1") end),
+  awful.key({ modkey }, "F3",   function () awful.util.spawn_with_shell("synclient touchpadoff=0") end),
+  -- Google Chrome
+  awful.key({ modkey }, "c",   function () awful.util.spawn_with_shell("google-chrome") end),
+  -- Sublime Text 2
+  awful.key({ modkey }, "s",   function () awful.util.spawn_with_shell("sublime_text") end),
+  -- xlock
+  awful.key({ modkey }, "F12",   function () awful.util.spawn_with_shell("xlock -mode blank") end),
+  -- {{ Move mouse
+  awful.key({ modkey }, "Left",  function () awful.client.moveresize(-20,   0,   0,   0) end),
+  awful.key({ modkey }, "Right", function () awful.client.moveresize( 20,   0,   0,   0) end),
+  awful.key({ modkey }, "Up",    function () awful.client.moveresize( 0,  -20,   0,   0) end),
+  awful.key({ modkey }, "Down",  function () awful.client.moveresize( 0,   20,   0,   0) end),
+  -- }}
+  -- keepassX {{
+  --awful.key({ modkey }, "p",   function () awful.util.spawn_with_shell("keepassx") end),
+  --}}
+
+------------------------- My key
+--    awful.key({ modkey,           }, "Left",   awful.tag.viewprev       ),
+  --  awful.key({ modkey,           }, "Right",  awful.tag.viewnext       ),
     awful.key({ modkey,           }, "Escape", awful.tag.history.restore),
 
     awful.key({ modkey,           }, "j",
@@ -515,6 +465,8 @@ awful.rules.rules = {
                      focus = true,
                      keys = clientkeys,
                      buttons = clientbuttons } },
+    -- Set Chrome to always map on tag number 2 of screen 1
+    { rule = { class = "Google-chrome" },  properties = {tag = tags[1][2]}},
     { rule = { class = "MPlayer" },
       properties = { floating = true } },
     { rule = { class = "pinentry" },
@@ -524,28 +476,12 @@ awful.rules.rules = {
     -- Set Firefox to always map on tags number 2 of screen 1.
     -- { rule = { class = "Firefox" },
     --   properties = { tag = tags[1][2] } },
-	-- Set Chrome to always map on tag number 2 of screen 1
-	{ rule = { class = "Google-chrome" },  properties = {tag = tags[1][2]}},
-	-- Set VirtualBox to always map on tag number 5 of screen 1
-	{ rule = { class = "VirtualBox" },  properties = {tag = tags[1][6]}},
-	-- Set Douban fm Chrome expand to always map on tag number 6 of screen 1, and floating
-	{ rule = { class = "Google-chrome", instance = "crx_clhojfdjfahpiddojlckmgmanojfdnal" },  properties = {tag = tags[1][7], floating = true}},
-	-- Set LibreOffice to always map on tag number 3 of screen 1
-	{ rule = { class = "libreoffice-writer" },  properties = {tag = tags[1][3]}},
-	{ rule = { class = "libreoffice-startcenter" },  properties = {tag = tags[1][3]}},
-	{ rule = { class = "libreoffice-calc" },  properties = {tag = tags[1][3]}},
-	-- Set Hotot to always map on tag number 3 of screen 1
-	{ rule = { class = "Google-chrome", name = "Hotot | - Google Chrome" },  properties = {tag = tags[1][5]}},
-	-- Start windows as slave
-	{ rule = { }, properties = { }, callback = awful.client.setslave }
 }
 -- }}}
 
 -- {{{ Signals
 -- Signal function to execute when a new client appears.
 client.add_signal("manage", function (c, startup)
-
-
     -- Add a titlebar
     -- awful.titlebar.add(c, { modkey = modkey })
 
@@ -573,24 +509,3 @@ end)
 client.add_signal("focus", function(c) c.border_color = beautiful.border_focus end)
 client.add_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
 -- }}}
-
--- Autorun programs
-autorun = true
-autorunApps = 
-{ 
-	--"killall fcitx",
-	"fcitx&",
-    "dropboxd&",
-	"synclient touchpadoff=1",
-	"xmodmap ~/.Xmodmap"
-}
-
-if autorun then
-    for app = 1, #autorunApps do
-        awful.util.spawn_with_shell(autorunApps[app])
-    end
-end
-
-awful.util.spawn_with_shell("/usr/lib/policykit-gnome/polkit-gnome-authentication-agent-1")
-awful.util.spawn_with_shell("run_once nm-applet")
-os.execute("sudo nm-applet &")
