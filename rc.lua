@@ -99,25 +99,26 @@ myawesomemenu = {
    { "restart", awesome.restart },
    { "quit", awesome.quit }
 }
-powermenu = {
-    { "Power Off",      "sudo poweroff"},
-    { "Reboot",         "sudo reboot"},
-    { "Lock",           "xlock -mode blank"},
-    { "suspend",        "sudo pm-suspend"}
-}
-myappmenu = {
-    { "Chrome",         "google-chrome" },
-    { "wicd-curses",     "urxvt -e wicd-curses" },
-    { "ranger",     "urxvt -e ranger" },
-    { "xfe",     "sudo xfe" },
-    { "eog",     "eog" },
-    { "Sublime Text",         "sublime_text" },
-    { "thunar",         "thunar" }
-}
+--powermenu = {
+    --{ "Power Off",      "sudo poweroff"},
+    --{ "Reboot",         "sudo reboot"},
+    --{ "Lock",           "xlock -mode blank"},
+    --{ "suspend",        "sudo pm-suspend"}
+--}
+--myappmenu = {
+    --{ "Chrome",         "google-chrome" },
+    --{ "wicd-curses",     "urxvt -e wicd-curses" },
+    --{ "ranger",     "urxvt -e ranger" },
+    --{ "xfe",     "sudo xfe" },
+    --{ "eog",     "eog" },
+    --{ "Sublime Text",         "sublime_text" },
+    --{ "thunar",         "thunar" }
+--}
 
 mymainmenu = awful.menu({ items = { { "awesome", myawesomemenu, beautiful.awesome_icon },
-                                    { "Appilction", myappmenu, beautiful.awesome_icon },
-                                    { "Power", powermenu, beautiful.awesome_icon }
+ --                                   { "Appilction", myappmenu, beautiful.awesome_icon },
+                                     { "Ubuntu", debian.menu.Debian_menu.Debian }
+  --                                  { "Power", powermenu, beautiful.awesome_icon }
                                   }
                         })
 
