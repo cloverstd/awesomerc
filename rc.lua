@@ -8,6 +8,8 @@ require("beautiful")
 require("naughty")
 --require("wicked")
 vicious = require("vicious")
+-- Load Debian menu entries
+require("debian.menu")
 
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
@@ -37,11 +39,11 @@ end
 -- {{{ Variable definitions
 local home = os.getenv("XDG_CONFIG_HOME")
 -- Themes define colours, icons, and wallpapers
--- beautiful.init("/usr/share/awesome/themes/default/theme.lua")
-beautiful.init(home .. "/awesome/themes/zenburn/theme.lua")
+beautiful.init("/usr/share/awesome/themes/default/theme.lua")
+-- beautiful.init(home .. "/awesome/themes/zenburn/theme.lua")
 
 -- This is used later as the default terminal and editor to run.
-terminal = "urxvt"
+terminal = "gnome-terminal"
 editor = os.getenv("EDITOR") or "nano"
 editor_cmd = terminal .. " -e " .. editor
 
@@ -104,11 +106,13 @@ powermenu = {
     { "suspend",        "sudo pm-suspend"}
 }
 myappmenu = {
-    { "Chrome",         "google-chrome"},
-    {"wicd-curses",     "urxvt -e wicd-curses"},
-    {"ranger",     "urxvt -e ranger"},
-    {"xfe",     "xfe"},
-    { "Sublime Text",         "sublime_text"}
+    { "Chrome",         "google-chrome" },
+    { "wicd-curses",     "urxvt -e wicd-curses" },
+    { "ranger",     "urxvt -e ranger" },
+    { "xfe",     "sudo xfe" },
+    { "eog",     "eog" },
+    { "Sublime Text",         "sublime_text" },
+    { "thunar",         "thunar" }
 }
 
 mymainmenu = awful.menu({ items = { { "awesome", myawesomemenu, beautiful.awesome_icon },
@@ -180,17 +184,17 @@ mytasklist.buttons = awful.util.table.join(
 
 
 -- TIME widget
--- {{
+-- {{`
 -- Initialize widget
 datewidget = widget({ type = "textbox" })
--- Register widget
-vicious.register(datewidget, vicious.widgets.date, '[DATE: %b %d] [TIME: <span color="yellow">%R</span>]', 60)
+-- Register widget 
+vicious.register(datewidget, vicious.widgets.date, '[%a %d] <span color="#FF9900">[</span><span color="#0033FF">%R</span><span color="#FF9900">]</span>', 60)
 -- }}
 
 -- Memory Widget
 -- {{
 memwidget = widget({ type = "textbox" })
-vicious.register(memwidget, vicious.widgets.mem, '[MEM: <span color="red">$1%</span>]', 13)
+vicious.register(memwidget, vicious.widgets.mem, '[MEM: <span color="yellow">$1%</span>]', 13)
 -- }}
 
 -- CPU Widget
@@ -308,16 +312,16 @@ root.buttons(awful.util.table.join(
 -- {{{ Key bindings
 globalkeys = awful.util.table.join(
 
-  ------------------------- Is My key
+---------------------------  MY KEY START
   --awful.key({ modkey }, "F1",   function () awful.util.spawn_with_shell("urxvt -e ssh -qTfnN -D 7070 -p 7775 hui.lu -v") end),
-  awful.key({ modkey }, "F2",   function () awful.util.spawn_with_shell("synclient touchpadoff=1") end),
-  awful.key({ modkey }, "F3",   function () awful.util.spawn_with_shell("synclient touchpadoff=0") end),
+  --awful.key({ modkey }, "F2",   function () awful.util.spawn_with_shell("synclient touchpadoff=1") end),
+  --awful.key({ modkey }, "F3",   function () awful.util.spawn_with_shell("synclient touchpadoff=0") end),
   -- Google Chrome
   awful.key({ modkey }, "c",   function () awful.util.spawn_with_shell("google-chrome") end),
   -- Sublime Text 2
   awful.key({ modkey }, "s",   function () awful.util.spawn_with_shell("sublime_text") end),
   -- xlock
-  awful.key({ modkey }, "F12",   function () awful.util.spawn_with_shell("xlock -mode blank") end),
+  --awful.key({ modkey }, "F12",   function () awful.util.spawn_with_shell("xlock -mode blank") end),
   -- {{ Move mouse
   awful.key({ modkey }, "Left",  function () awful.client.moveresize(-20,   0,   0,   0) end),
   awful.key({ modkey }, "Right", function () awful.client.moveresize( 20,   0,   0,   0) end),
@@ -328,7 +332,7 @@ globalkeys = awful.util.table.join(
   --awful.key({ modkey }, "p",   function () awful.util.spawn_with_shell("keepassx") end),
   --}}
 
-------------------------- My key
+------------------------- MY KEY END
 --    awful.key({ modkey,           }, "Left",   awful.tag.viewprev       ),
   --  awful.key({ modkey,           }, "Right",  awful.tag.viewnext       ),
     awful.key({ modkey,           }, "Escape", awful.tag.history.restore),
@@ -508,4 +512,13 @@ end)
 
 client.add_signal("focus", function(c) c.border_color = beautiful.border_focus end)
 client.add_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
+-- }}}
+
+-- AutoStart
+-- {{{
+awful.util.spawn_with_shell("xsetroot -solid black &") 
+awful.util.spawn_with_shell("gnome-screensaver &")
+awful.util.spawn_with_shell("gnome-settings-daemon &")
+awful.util.spawn_with_shell("dropbox start &")
+awful.util.spawn_with_shell("nm-applet &")
 -- }}}
